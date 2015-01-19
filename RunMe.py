@@ -7,6 +7,7 @@ Copyright (c) 2014  Po-Hsu Lin <po-hsu.lin@canonical.com>
 
 import os
 import re
+import glob
 import json
 import platform
 import subprocess
@@ -76,9 +77,19 @@ def main():
     '''Check buggy components by its device ID'''
     found = False
     distro, ver = sysinfo()
-    filename = distro + "-" + ver + "-bug.json"
+    fn = distro + "-" + ver + "-bug.json"
     print('Your distro: %s' % distro)
     print('Your kernel version: %s.X ' % ver)
+    if not os.path.isfile(fn):
+        print("Sorry we don't have a database for %s-%s." % (distro, ver))
+        filenames = glob.glob('*-%s-bug.json' % (ver))
+        fn = filenames[-1]
+        if fn:
+            print('We will use %s as an alternative' % (fn))
+        else:
+            print("We don't have a database for the same kernel as well :(")
+            print("Program terminates now")
+            return
     if os.path.isdir('/proc/acpi/button/lid'):
         print('Checking touchpad/mouse')
         xinput_detect()
@@ -89,7 +100,7 @@ def main():
     ALLdev = chain(USBdev, PCIdev, PNPdev)
     SUBtmp = []
     print('Loading database...')
-    with open(filename, 'r') as database:
+    with open(fn, 'r') as database:
         dict_db = json.load(database)
     print('Running component check...')
     for dev in ALLdev:
