@@ -25,6 +25,14 @@ def xinput_detect():
     if "PS/2 Generic Mouse" in data:
         print('"PS/2 Generic Mouse" found in xinput')
         print('Please check scrolling ability of your touchpad.')
+    if "SynPS/2 Synaptics TouchPad" in data:
+        capability = subprocess.check_output(
+            "xinput list-props 'SynPS/2 Synaptics TouchPad' | grep Capa",
+            shell=True)
+        capability = re.sub('\t.*:\t', '', capability)
+        capability = re.split(',', capability)
+        if capability[4]:  # 1 - device support 3-finger detection
+            printer("Synaptics Touchpad", "1384042", "Input")
 
 
 def parser_usb():
@@ -102,7 +110,7 @@ def main():
         for bugs in dict_db['Audio'][dev]:
             printer(dev, bugs, 'Audio')
     if not found:
-        print('No known issue found on your system')
+        print('No other known issue found on your system')
 
 if __name__ == "__main__":
     main()
