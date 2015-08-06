@@ -13,6 +13,7 @@ import platform
 import subprocess
 from itertools import chain
 
+XDISPLAY = "DISPLAY=" + os.getenv("DISPLAY",':0')
 
 def sysinfo():
     '''Return the distro and kernel version to see which database to use'''
@@ -22,13 +23,15 @@ def sysinfo():
 
 def xinput_detect():
     '''Detect PS/2 Mouse'''
-    data = subprocess.check_output("xinput list --name-only", shell=True)
+    data = subprocess.check_output(XDISPLAY + " xinput list --name-only", shell=True)
     if "PS/2 Generic Mouse" in data:
+        print('================================================')
         print('"PS/2 Generic Mouse" found in xinput')
         print('Please check scrolling ability of your touchpad.')
+        print('================================================')
     if "SynPS/2 Synaptics TouchPad" in data:
         capability = subprocess.check_output(
-            "xinput list-props 'SynPS/2 Synaptics TouchPad' | grep Capa",
+            XDISPLAY + " xinput list-props 'SynPS/2 Synaptics TouchPad' | grep Capa",
             shell=True)
         capability = re.sub('\t.*:\t', '', capability)
         capability = re.split(',', capability)
