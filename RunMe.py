@@ -84,15 +84,19 @@ def main():
     print('Your distro: %s' % distro)
     print('Your kernel version: %s.X ' % ver)
     if not os.path.isfile(fn):
-        print("Sorry we don't have a database for %s-%s." % (distro, ver))
+        print("Sorry we don't have a database for %s-%s" % (distro, ver))
         filenames = glob.glob('*-%s-bug.json' % (ver))
+        if 0 == len(filenames):
+            print("And we don't have any database for kernel %s" % (ver))
+            filenames = glob.glob('%s-*-bug.json' % (distro))
+            if 0 == len(filenames):
+                print("And we don't have any database for %s" % (distro))
+                print("Program terminates now :(")
+                return
+#       Return the last (newest) database with the same kernel / distro
         fn = filenames[-1]
-        if fn:
-            print('We will use %s as an alternative' % (fn))
-        else:
-            print("We don't have a database for the same kernel as well :(")
-            print("Program terminates now")
-            return
+        print('We will use %s as an alternative' % (fn))
+        print("* It might cause some false alarms")
     if os.path.isdir('/proc/acpi/button/lid'):
         print('Checking touchpad/mouse')
         xinput_detect()
