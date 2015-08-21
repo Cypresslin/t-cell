@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-'''
-T-Cell, the component issue lookup tool, A small tool for
-checking known buggy components on your system.
-Copyright (c) 2014  Po-Hsu Lin <po-hsu.lin@canonical.com>
-'''
+"""T-Cell, the component issue lookup tool.
+
+A small tool for checking known buggy components on your system.
+Copyright (c) 2014 - 2015  Po-Hsu Lin <po-hsu.lin@canonical.com>
+"""
 
 import os
 import re
@@ -13,16 +13,17 @@ import platform
 import subprocess
 from itertools import chain
 
-XDISPLAY = "DISPLAY=" + os.getenv("DISPLAY",':0')
+XDISPLAY = "DISPLAY=" + os.getenv("DISPLAY", ':0')
+
 
 def sysinfo():
-    '''Return the distro and kernel version to see which database to use'''
+    """Return the distro and kernel version to see which database to use."""
     data = platform.release().split('.')
     return platform.dist()[2], '.'.join(data[:2])
 
 
 def xinput_detect():
-    '''Detect PS/2 Mouse'''
+    """Detect PS/2 Mouse."""
     data = subprocess.check_output(XDISPLAY + " xinput list --name-only", shell=True)
     if "PS/2 Generic Mouse" in data:
         print('================================================')
@@ -40,7 +41,7 @@ def xinput_detect():
 
 
 def parser_usb():
-    '''Return the device found in usb-devices command'''
+    """Return devices found in usb-devices command."""
     data = subprocess.check_output("usb-devices", shell=True)
     data = re.sub('Vendor=', 'usb-', data)
     data = re.sub(' ProdID=', ':', data)
@@ -51,7 +52,7 @@ def parser_usb():
 
 
 def parser_pci():
-    '''Return the device found in "lspci -nv" command'''
+    """Return devices found in "lspci -nv" command."""
     data = subprocess.check_output("lspci -nv", shell=True)
     data = re.sub('\s+Subsystem: ', ' Subsystem-', data)
     data = re.sub(':\s', ' pci-', data)
@@ -62,8 +63,10 @@ def parser_pci():
 
 
 def parser_pnp():
-    '''Return the device found in /sys/devices/pnp0/
-       REV, SUB added for data stucture consistency'''
+    """Return devices found in /sys/devices/pnp0/.
+
+    REV, SUB will be added for data stucture consistency
+    """
     data = subprocess.check_output("cat /sys/devices/pnp0/*/id", shell=True)
     data = re.sub("$\n", "", data)
     data = re.sub("^", "pnp-", data, flags=re.MULTILINE)
@@ -72,12 +75,12 @@ def parser_pnp():
 
 
 def printer(dev, bug, cat):
-    '''Print out the information'''
+    """Print out the information."""
     print("Known issue for %s: http://pad.lv/%s (%s)" % (dev, bug, cat))
 
 
 def main():
-    '''Check buggy components by its device ID'''
+    """Check buggy components by its device ID."""
     found = False
     distro, ver = sysinfo()
     fn = distro + "-" + ver + "-bug.json"
@@ -111,10 +114,10 @@ def main():
         dict_db = json.load(database)
     print('Running component check...')
     for dev in ALLdev:
-#       Special case: Parse the Subsystem for Audio
+        # Special case: Parse the Subsystem for Audio
         if dev.group('SUB') in dict_db['Audio']:
-#           In lspci & lsusb, only the Subsystem will be duplicated, we will
-#           collect them into a temporary list then de-duplicate it later.
+            # In lspci & lsusb, only the Subsystem will be duplicated, we will
+            # collect them into a temporary list then de-duplicate it later.
             found = True
             SUBtmp.append(dev.group('SUB'))
         for cat in dict_db:
