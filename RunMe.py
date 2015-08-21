@@ -40,9 +40,20 @@ def xinput_detect():
             printer("Synaptics Touchpad", "1384042", "Input")
 
 
+def parser_input():
+    """Return devices found in /proc/bus/input/devices."""
+    data = subprocess.check_output("cat /proc/bus/input/devices | sed -n 's/I: //p'", shell=True)
+    data = re.sub('Vendor=', 'input-', data)
+    data = re.sub(' Product=', ':', data)
+#   No Subsystem in input, but added here to retain consistency with PCIdev
+    result = re.finditer('\w+ (?P<COMP>input-\w+:\w+) Version=(?P<REV>\w{4})'
+                         '(.+(?P<SUB>Subsystem-\w+:\w+))?', data)
+    return result
+
+
 def parser_usb():
     """Return devices found in usb-devices command."""
-    data = subprocess.check_output("usb-devices", shell=True)
+    data = subprocess.check_output("usb-devices", shell=False)
     data = re.sub('Vendor=', 'usb-', data)
     data = re.sub(' ProdID=', ':', data)
 #   No Subsystem in USB, but added here to retain consistency with PCIdev
@@ -104,10 +115,11 @@ def main():
         print('Checking touchpad/mouse')
         xinput_detect()
     print('Scanning components...')
+    INPdev = parser_input()
     USBdev = parser_usb()
     PCIdev = parser_pci()
     PNPdev = parser_pnp()
-    ALLdev = chain(USBdev, PCIdev, PNPdev)
+    ALLdev = chain(INPdev, USBdev, PCIdev, PNPdev)
     SUBtmp = []
     print('Loading database...')
     with open(fn, 'r') as database:
