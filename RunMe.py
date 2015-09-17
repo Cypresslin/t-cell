@@ -95,6 +95,7 @@ def main():
     found = False
     distro, ver = sysinfo()
     fn = distro + "-" + ver + "-bug.json"
+    fn_common = "common-bug.json"
     print('Your distro: %s' % distro)
     print('Your kernel version: %s.X ' % ver)
     if not os.path.isfile(fn):
@@ -142,6 +143,14 @@ def main():
     for dev in SUBtmp:
         for bugs in dict_db['Audio'][dev]:
             printer(dev, bugs, 'Audio')
+    print('Checking common issues...')
+    with open(fn_common, 'r') as database:
+        dict_db = json.load(database)
+    for cat in dict_db:
+        if distro in dict_db[cat]:
+            found = True
+            for bugs in dict_db[cat][distro]:
+                printer(distro, bugs, cat)
     if not found:
         print('No other known issue found on your system')
 
