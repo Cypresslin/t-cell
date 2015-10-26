@@ -147,6 +147,10 @@ def main():
     with open(fn_common, 'r') as database:
         dict_db = json.load(database)
     for cat in dict_db:
+        # Skip the Bluetooth category if there is no BT
+        if 'Bluetooth' == cat:
+            if not subprocess.check_output("hciconfig"):
+                continue
         if distro in dict_db[cat]:
             found = True
             for bugs in dict_db[cat][distro]:
